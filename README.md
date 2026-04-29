@@ -65,6 +65,56 @@ pnpm run dev
 >
 > Use this command for update your project: `ncu -i --format group`
 
+## Research Agent
+
+A built-in agentic research console at `/dashboard/research` demonstrates how
+to layer an autonomous-agent feature on top of this SaaS starter. The agent
+plans sub-questions, runs web searches, reasons over the results, and
+synthesizes a cited answer — all streamed back as structured Server-Sent
+Events.
+
+The design draws from several public reference projects:
+
+- [`langchain-ai/langchainjs`](https://github.com/langchain-ai/langchainjs) — JS
+  agent orchestration patterns (typed step events, tool abstractions).
+- [`openai/openai-assistants-quickstart`](https://github.com/openai/openai-assistants-quickstart)
+  — Next.js streaming endpoint and assistant-style UI shape.
+- [`Significant-Gravitas/AutoGPT`](https://github.com/Significant-Gravitas/AutoGPT)
+  — autonomous task-loop with explicit statuses.
+- [`microsoft/autogen`](https://github.com/microsoft/autogen) — role-based
+  multi-agent breakdown (planner / researcher / writer).
+- [`assafelovic/gpt-researcher`](https://github.com/assafelovic/gpt-researcher)
+  — planner → retriever → synthesizer pipeline with citations.
+
+### Key files
+
+- `lib/agents/types.ts` — shared event/step types.
+- `lib/agents/llm.ts` — LLM wrapper (OpenAI Chat Completions over `fetch`,
+  with deterministic demo fallback so no SDK dependency is required).
+- `lib/agents/search.ts` — web search wrapper (Tavily, with demo fallback).
+- `lib/agents/research.ts` — orchestrator that yields `AgentEvent`s.
+- `app/api/research/route.ts` — authenticated SSE endpoint.
+- `app/(protected)/dashboard/research/page.tsx` — dashboard page.
+- `components/research/research-console.tsx` — chat-style UI with live step
+  list, sources, and final cited answer.
+
+### Configuration
+
+All variables are optional — without them, the feature runs in demo mode.
+
+| Var | Purpose |
+| --- | ------- |
+| `OPENAI_API_KEY` | Enables real LLM planning + synthesis (otherwise demo). |
+| `OPENAI_MODEL` | Override the chat model (default `gpt-4o-mini`). |
+| `TAVILY_API_KEY` | Enables live web search (otherwise demo source links). |
+
+### Try it
+
+1. `pnpm install`
+2. `cp .env.example .env.local` and fill the required starter vars.
+3. `pnpm dev` and sign in, then visit `/dashboard/research`.
+4. (Optional) Add `OPENAI_API_KEY` and/or `TAVILY_API_KEY` for live mode.
+
 ## Roadmap
 - [ ] Upgrade eslint to v9
 - [ ] Add resend for success subscriptions

@@ -21,6 +21,11 @@ export const sidebarLinks: SidebarNavItem[] = [
       },
       { href: "/dashboard/charts", icon: "lineChart", title: "Charts" },
       {
+        href: "/dashboard/research",
+        icon: "sparkles",
+        title: "Research Agent",
+      },
+      {
         href: "/admin/orders",
         icon: "package",
         title: "Orders",
