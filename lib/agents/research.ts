@@ -4,11 +4,13 @@
 //   - AutoGen: distinct agent roles (planner / researcher / writer)
 //   - langchainjs / openai-assistants-quickstart: streamed step events
 //
-// This module is intentionally framework-light: it produces a stream of
-// AgentEvent values which the API route forwards over Server-Sent Events.
+// This module is intentionally framework-light and provider-neutral: it
+// produces a stream of AgentEvent values which the API route forwards over
+// Server-Sent Events. Planning and synthesis are deterministic and run
+// locally — Tavily is the only optional live integration.
 
-import { chat, hasLLM, planSubQueries } from "./llm";
 import { webSearch } from "./search";
+import { planSubQueries, synthesize } from "./synthesizer";
 import { AgentEvent, AgentSource, ResearchRequest } from "./types";
 
 function id(prefix: string) {
@@ -28,11 +30,10 @@ export async function* runResearch(
     return;
   }
 
-  const llmReady = hasLLM();
   const searchReady = Boolean(process.env.TAVILY_API_KEY);
   yield {
     type: "info",
-    message: `LLM: ${llmReady ? "live" : "demo"} · Search: ${searchReady ? "live (Tavily)" : "demo"}`,
+    message: `Synthesis: local · Search: ${searchReady ? "live (Tavily)" : "demo"}`,
   };
 
   // 1. PLAN
@@ -46,7 +47,7 @@ export async function* runResearch(
       status: "running",
     },
   };
-  const subQueries = await planSubQueries(question, req.mode === "deep" ? 4 : 3);
+  const subQueries = planSubQueries(question, req.mode === "deep" ? 4 : 3);
   yield {
     type: "step",
     step: {
@@ -109,7 +110,7 @@ export async function* runResearch(
       status: "running",
     },
   };
-  if (!llmReady) await sleep(150); // small UX pause in demo mode
+  await sleep(150); // small UX pause so the running state is visible
   yield {
     type: "step",
     step: {
@@ -132,26 +133,7 @@ export async function* runResearch(
       status: "running",
     },
   };
-  const sourcesBlock = dedupedSources
-    .map(
-      (s, i) =>
-        `[${i + 1}] ${s.title} — ${s.url}${s.snippet ? `\n    ${s.snippet}` : ""}`,
-    )
-    .join("\n");
-  const answer = await chat(
-    [
-      {
-        role: "system",
-        content:
-          "You are a careful research assistant. Write a concise, well-structured answer (markdown, ~250 words) using ONLY the provided sources. Cite with [n] matching the numbered source list. If information is insufficient, say so.",
-      },
-      {
-        role: "user",
-        content: `Question: ${question}\n\nSources:\n${sourcesBlock}`,
-      },
-    ],
-    { temperature: 0.2 },
-  );
+  const answer = synthesize({ question, sources: dedupedSources });
   yield {
     type: "step",
     step: {

@@ -89,8 +89,8 @@ The design draws from several public reference projects:
 ### Key files
 
 - `lib/agents/types.ts` — shared event/step types.
-- `lib/agents/llm.ts` — LLM wrapper (OpenAI Chat Completions over `fetch`,
-  with deterministic demo fallback so no SDK dependency is required).
+- `lib/agents/synthesizer.ts` — provider-neutral local planner + synthesizer.
+  Deterministic, no network calls, no paid-LLM dependency.
 - `lib/agents/search.ts` — web search wrapper (Tavily, with demo fallback).
 - `lib/agents/research.ts` — orchestrator that yields `AgentEvent`s.
 - `app/api/research/route.ts` — authenticated SSE endpoint.
@@ -100,20 +100,22 @@ The design draws from several public reference projects:
 
 ### Configuration
 
-All variables are optional — without them, the feature runs in demo mode.
+The agent is fully functional with zero configuration. The only optional
+variable enables live web search via Tavily; everything else is local.
 
 | Var | Purpose |
 | --- | ------- |
-| `OPENAI_API_KEY` | Enables real LLM planning + synthesis (otherwise demo). |
-| `OPENAI_MODEL` | Override the chat model (default `gpt-4o-mini`). |
-| `TAVILY_API_KEY` | Enables live web search (otherwise demo source links). |
+| `TAVILY_API_KEY` | Enables live web search (otherwise demo source links). Server-side only. |
+
+> The planner and answer synthesizer are deterministic local code. No OpenAI
+> or other paid-LLM credentials are read by the agent.
 
 ### Try it
 
 1. `pnpm install`
 2. `cp .env.example .env.local` and fill the required starter vars.
 3. `pnpm dev` and sign in, then visit `/dashboard/research`.
-4. (Optional) Add `OPENAI_API_KEY` and/or `TAVILY_API_KEY` for live mode.
+4. (Optional) Add `TAVILY_API_KEY` to your `.env.local` for live web search.
 
 ## Roadmap
 - [ ] Upgrade eslint to v9
