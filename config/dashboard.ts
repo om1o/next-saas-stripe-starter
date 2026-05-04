@@ -14,12 +14,22 @@ export const sidebarLinks: SidebarNavItem[] = [
       },
       { href: "/dashboard", icon: "dashboard", title: "Dashboard" },
       {
+        href: "/dashboard/grantpilot",
+        icon: "sparkles",
+        title: "GrantPilot",
+      },
+      {
+        href: "/dashboard/research",
+        icon: "search",
+        title: "Research Agent",
+      },
+      { href: "/dashboard/charts", icon: "lineChart", title: "Charts" },
+      {
         href: "/dashboard/billing",
         icon: "billing",
         title: "Billing",
         authorizeOnly: UserRole.USER,
       },
-      { href: "/dashboard/charts", icon: "lineChart", title: "Charts" },
       {
         href: "/admin/orders",
         icon: "package",
